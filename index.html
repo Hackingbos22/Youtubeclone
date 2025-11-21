@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & VARS --- */
+        :root {
+            --bg-color: #0f0f0f;
+            --header-bg: #0f0f0f;
+            --sidebar-bg: #0f0f0f;
+            --text-main: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border-color: #303030;
+            --hover-color: #272727;
+            --red-brand: #ff0000;
+            --search-bg: #121212;
+            --search-border: #303030;
+            --search-btn-bg: #222222;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #717171; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+
+        /* --- HEADER --- */
+        header {
+            position: sticky;
+            top: 0;
+            height: 56px;
+            background: var(--header-bg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+
+        .start, .end {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-icon {
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .menu-icon:hover { background: var(--hover-color); }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+        .logo i { color: var(--red-brand); font-size: 24px; }
+
+        /* Search Bar */
+        .center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            max-width: 700px;
+        }
+
+        .search-box {
+            display: flex;
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--search-bg);
+            border: 1px solid var(--search-border);
+            border-right: none;
+            padding: 8px 16px;
+            border-radius: 40px 0 0 40px;
+            color: white;
+            font-size: 16px;
+        }
+        .search-input:focus { border-color: #1c62b9; outline: none; }
+
+        .search-btn {
+            background: var(--search-btn-bg);
+            border: 1px solid var(--search-border);
+            padding: 0 20px;
+            border-radius: 0 40px 40px 0;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .voice-btn {
+            background: var(--search-bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            color: white;
+        }
+        .voice-btn:hover { background: var(--hover-color); }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: purple;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background: var(--sidebar-bg);
+            overflow-y: auto;
+            padding: 12px;
+            transform: translateX(0);
+            transition: transform 0.2s ease;
+            z-index: 90;
+        }
+        .sidebar.collapsed { transform: translateX(-100%); }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+        .nav-item:hover, .nav-item.active { background: var(--hover-color); }
+        .nav-item i { margin-right: 20px; font-size: 18px; }
+        .nav-item span { font-size: 14px; }
+
+        .nav-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 16px 12px 8px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        /* --- MAIN CONTENT AREA --- */
+        .main-content {
+            margin-left: 240px;
+            padding: 24px;
+            padding-top: 12px;
+            transition: margin-left 0.2s ease;
+        }
+        .main-content.expanded { margin-left: 0; }
+
+        /* Chips */
+        .chips-wrapper {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            position: sticky;
+            top: 56px;
+            background: var(--bg-color);
+            z-index: 10;
+            margin-bottom: 10px;
+        }
+        .chip {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .chip:hover { background: rgba(255,255,255,0.2); }
+        .chip.active { background: white; color: black; font-weight: 500; }
+
+        /* --- VIDEO GRID (HOME) --- */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card { cursor: pointer; }
+        
+        .thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            background: #222;
+            overflow: hidden;
+            position: relative;
+        }
+        .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+        .duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            padding: 3px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .video-details {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .channel-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #333;
+            flex-shrink: 0;
+        }
+        .meta { display: flex; flex-direction: column; }
+        .video-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .channel-name, .video-stats {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .video-stats::before { content: "•"; margin: 0 4px; }
+
+        /* --- WATCH PAGE (HIDDEN BY DEFAULT) --- */
+        .watch-view {
+            display: none;
+            grid-template-columns: 70% 30%;
+            gap: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .watch-view.active { display: grid; }
+
+        .primary-col { display: flex; flex-direction: column; }
+        .secondary-col { display: flex; flex-direction: column; gap: 10px; }
+
+        .player-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: black;
+            margin-bottom: 12px;
+        }
+        .player-container iframe { width: 100%; height: 100%; border: none; }
+
+        .watch-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        
+        .watch-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+
+        .channel-row { display: flex; align-items: center; gap: 12px; }
+        .sub-btn {
+            background: white;
+            color: black;
+            padding: 8px 16px;
+            border-radius: 18px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .act-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        .act-btn:hover { background: rgba(255,255,255,0.2); }
+
+        /* Rec Cards (Sidebar in Watch) */
+        .rec-card {
+            display: flex;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .rec-thumb {
+            width: 168px;
+            height: 94px;
+            border-radius: 8px;
+            background: #333;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .rec-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .rec-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .rec-info p { font-size: 12px; color: var(--text-secondary); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1000px) {
+            .sidebar { transform: translateX(-100%); } /* Hidden by default on mid screens */
+            .main-content { margin-left: 0; }
+            .watch-view { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .search-box { display: none; } /* Simple mobile header */
+            .header-end i { display: none; }
+            .menu-icon { display: block; }
+            .chips-wrapper { top: 56px; }
+            .video-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="start">
+            <div class="menu-icon" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+            <div class="logo" onclick="goHome()">
+                <i class="fa-brands fa-youtube"></i> <span>YouTube</span>
+            </div>
+        </div>
+        <div class="center">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search" id="searchInput">
+                <button class="search-btn" onclick="handleSearch()">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+            <button class="voice-btn"><i class="fa-solid fa-microphone"></i></button>
+        </div>
+        <div class="end header-end">
+            <div class="menu-icon"><i class="fa-solid fa-video"></i></div>
+            <div class="menu-icon"><i class="fa-regular fa-bell"></i></div>
+            <div class="user-avatar">U</div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="nav-item active" onclick="goHome()"><i class="fa-solid fa-house"></i> <span>Home</span></div>
+        <div class="nav-item"><i class="fa-brands fa-youtube"></i> <span>Shorts</span></div>
+        <div class="nav-item"><i class="fa-solid fa-clapperboard"></i> <span>Subscriptions</span></div>
+        
+        <div class="nav-section-title">You</div>
+        <div class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> <span>History</span></div>
+        <div class="nav-item"><i class="fa-regular fa-clock"></i> <span>Watch later</span></div>
+        <div class="nav-item"><i class="fa-regular fa-thumbs-up"></i> <span>Liked videos</span></div>
+        
+        <div class="nav-section-title">Explore</div>
+        <div class="nav-item"><i class="fa-solid fa-fire"></i> <span>Trending</span></div>
+        <div class="nav-item"><i class="fa-solid fa-music"></i> <span>Music</span></div>
+        <div class="nav-item"><i class="fa-solid fa-gamepad"></i> <span>Gaming</span></div>
+        <div class="nav-item"><i class="fa-solid fa-newspaper"></i> <span>News</span></div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        
+        <!-- Home Feed View -->
+        <div id="homeView">
+            <!-- Chips -->
+            <div class="chips-wrapper">
+                <div class="chip active">All</div>
+                <div class="chip">Gaming</div>
+                <div class="chip">Music</div>
+                <div class="chip">Live</div>
+                <div class="chip">JavaScript</div>
+                <div class="chip">AI</div>
+                <div class="chip">Stocks</div>
+                <div class="chip">Podcasts</div>
+                <div class="chip">New to you</div>
+            </div>
+
+            <!-- Video Grid -->
+            <div class="video-grid" id="videoGrid">
+                <!-- Videos injected here -->
+            </div>
+        </div>
+
+        <!-- Watch Page View -->
+        <div class="watch-view" id="watchView">
+            <div class="primary-col">
+                <div class="player-container">
+                    <iframe id="playerFrame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+                <div class="watch-title" id="playerTitle">Video Title</div>
+                
+                <div class="watch-actions">
+                    <div class="channel-row">
+                        <div class="channel-icon" style="background-color: #555;"></div>
+                        <div>
+                            <h4 id="playerChannel">Channel Name</h4>
+                            <div style="font-size:12px; color:#aaa;">1.2M subscribers</div>
+                        </div>
+                        <div class="sub-btn">Subscribe</div>
+                    </div>
+                    <div class="action-btns">
+                        <button class="act-btn"><i class="fa-regular fa-thumbs-up"></i> 12K</button>
+                        <button class="act-btn"><i class="fa-regular fa-thumbs-down"></i></button>
+                        <button class="act-btn"><i class="fa-solid fa-share"></i> Share</button>
+                        <button class="act-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                </div>
+
+                <!-- Comments Placeholder -->
+                <div style="margin-top: 20px;">
+                    <h3>453 Comments</h3>
+                    <div style="display:flex; gap:12px; margin-top:15px;">
+                        <div class="user-avatar">U</div>
+                        <input type="text" placeholder="Add a comment..." style="flex:1; background:none; border:none; border-bottom:1px solid #333; color:white; padding:5px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="secondary-col" id="recommendations">
+                <!-- Recs injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- CONFIG ---
+        const API_KEY = 'AIzaSyCWycEm2zis1mz23yxb2DS1zIo_p5IQ2nU'; // Using provided key
+        
+        // Safe Fallback Data (in case API quota exceeded)
+        const MOCK_VIDEOS = [
+            { id: 'DPjLpG175io', title: "Bloomberg Global Financial News Live", channel: "Bloomberg", views: "1.2M views", time: "Live", img: "https://i.ytimg.com/vi/DPjLpG175io/hq720.jpg" },
+            { id: '8AjJk7E_t0Y', title: "How The Stock Market Works", channel: "Rob Berger", views: "500K views", time: "1 year ago", img: "https://i.ytimg.com/vi/8AjJk7E_t0Y/hq720.jpg" },
+            { id: 'lBMHXuo37nk', title: "Lo-Fi beats to study/relax to", channel: "Lofi Girl", views: "50K watching", time: "Live", img: "https://i.ytimg.com/vi/lBMHXuo37nk/hq720.jpg" },
+            { id: 'p7HKvqRI_Bo', title: "How The Economic Machine Works by Ray Dalio", channel: "Principles", views: "34M views", time: "9 years ago", img: "https://i.ytimg.com/vi/p7HKvqRI_Bo/hq720.jpg" },
+            { id: 'fJ9rUzIMcZQ', title: "Bohemian Rhapsody (Remastered)", channel: "Queen", views: "1.6B views", time: "15 years ago", img: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hq720.jpg" },
+            { id: 'gG0b7F7jJnA', title: "Relaxing Jazz Music - Background", channel: "Cafe Music", views: "12M views", time: "2 years ago", img: "https://i.ytimg.com/vi/gG0b7F7jJnA/hq720.jpg" },
+            { id: 'jfKfPfyJRdk', title: "Lofi Girl - beats to relax/study to", channel: "Lofi Girl", views: "Live", time: "Now", img: "https://i.ytimg.com/vi/jfKfPfyJRdk/hq720.jpg" },
+            { id: 'M7lc1UVf-VE', title: "YouTube Developers Guide", channel: "Google Developers", views: "800K views", time: "4 years ago", img: "https://i.ytimg.com/vi/M7lc1UVf-VE/hq720.jpg" },
+            { id: '7GHNjWAQAQA', title: "Nature 4K - Relaxing River", channel: "Nature Relax", views: "5M views", time: "3 years ago", img: "https://i.ytimg.com/vi/7GHNjWAQAQA/hq720.jpg" },
+            { id: 'LXb3EKWsInQ', title: "Costarica 4K - Animals", channel: "Scenic", views: "10M views", time: "1 year ago", img: "https://i.ytimg.com/vi/LXb3EKWsInQ/hq720.jpg" }
+        ];
+
+        // --- APP STATE ---
+        let isSidebarOpen = true;
+
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            loadHomeVideos("All");
+            handleResize();
+        };
+
+        window.onresize = handleResize;
+
+        function handleResize() {
+            if (window.innerWidth < 1000) {
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.getElementById('mainContent').classList.add('expanded');
+                isSidebarOpen = false;
+            } else {
+                document.getElementById('sidebar').classList.remove('collapsed');
+                document.getElementById('mainContent').classList.remove('expanded');
+                isSidebarOpen = true;
+            }
+        }
+
+        // --- NAVIGATION LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('mainContent');
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('expanded');
+            isSidebarOpen = !isSidebarOpen;
+        }
+
+        function goHome() {
+            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('watchView').classList.remove('active');
+            // Stop video when leaving watch page
+            document.getElementById('playerFrame').src = "";
+        }
+
+        function openWatchPage(videoId, title, channel) {
+            document.getElementById('homeView').style.display = 'none';
+            const watchView = document.getElementById('watchView');
+            watchView.classList.add('active');
+            
+            // Setup Player
+            document.getElementById('playerFrame').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            document.getElementById('playerTitle').innerText = title;
+            document.getElementById('playerChannel').innerText = channel;
+
+            // Load Sidebar Recommendations
+            renderRecommendations();
+            
+            window.scrollTo(0, 0);
+        }
+
+        // --- SEARCH & API ---
+        async function handleSearch() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+            loadHomeVideos(query);
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') handleSearch();
+        });
+
+        async function loadHomeVideos(query) {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = '<div style="color:white; grid-column: 1/-1; text-align:center;">Loading...</div>';
+            
+            let videos = [];
+
+            // 1. Try Real API
+            const endpoint = query === "All" 
+                ? `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=12&regionCode=US&key=${API_KEY}`
+                : `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=12&key=${API_KEY}`;
+
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+
+                if (data.items) {
+                    videos = data.items.map(item => {
+                        const snippet = item.snippet;
+                        const id = item.id.videoId || item.id; // search returns id.videoId, popular returns id
+                        return {
+                            id: id,
+                            title: snippet.title,
+                            channel: snippet.channelTitle,
+                            views: item.statistics ? formatViews(item.statistics.viewCount) : "New",
+                            time: "Just now", // API doesn't give easy relative time without more logic
+                            img: snippet.thumbnails.medium.url
+                        };
+                    });
+                } else {
+                    throw new Error("API Limit/Error");
+                }
+            } catch (err) {
+                console.warn("Using Fallback Data");
+                videos = MOCK_VIDEOS;
+            }
+
+            renderGrid(videos);
+        }
+
+        // --- RENDERING ---
+        function renderGrid(videos) {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = '';
+
+            videos.forEach(vid => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => openWatchPage(vid.id, vid.title, vid.channel);
+                
+                card.innerHTML = `
+                    <div class="thumbnail">
+                        <img src="${vid.img}" alt="${vid.title}">
+                        <div class="duration">12:04</div>
+                    </div>
+                    <div class="video-details">
+                        <div class="channel-icon" style="background-image: url('https://ui-avatars.com/api/?name=${vid.channel}&background=random'); background-size:cover;"></div>
+                        <div class="meta">
+                            <div class="video-title">${vid.title}</div>
+                            <div class="channel-name">${vid.channel}</div>
+                            <div class="video-stats">${vid.views} <span class="video-stats">${vid.time}</span></div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderRecommendations() {
+            const container = document.getElementById('recommendations');
+            container.innerHTML = '';
+            
+            // Just shuffle mock videos for recs
+            const recs = [...MOCK_VIDEOS].sort(() => 0.5 - Math.random()).slice(0, 8);
+
+            recs.forEach(vid => {
+                const div = document.createElement('div');
+                div.className = 'rec-card';
+                div.onclick = () => openWatchPage(vid.id, vid.title, vid.channel);
+                div.innerHTML = `
+                    <div class="rec-thumb">
+                        <img src="${vid.img}">
+                    </div>
+                    <div class="rec-info">
+                        <h4>${vid.title}</h4>
+                        <p>${vid.channel}</p>
+                        <p>${vid.views}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- UTILS ---
+        function formatViews(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M views';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K views';
+            return num + ' views';
+        }
+
+        // Chips Interactivity
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                loadHomeVideos(this.innerText);
+            });
+        });
+
+    </script>
+</body>
+</html>
